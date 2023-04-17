@@ -1,61 +1,61 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCatDto } from './dto/create.dto';
+import { CatDto } from './dto/cat.dto';
 import { UpdateCatDto } from './dto/update.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CatsEntity } from './cats.entity';
-import { Repository, UpdateResult } from 'typeorm';
-import { validate } from 'class-validator';
-import { ValidateException } from '../customExeptions';
+
+const cats: CatDto[] = [
+  {
+    id: 1,
+    name: 'Newton',
+    age: 2,
+    breed: 'Metis',
+  },
+  {
+    id: 2,
+    name: 'Einstein',
+    age: 1,
+    breed: 'Metis',
+  },
+];
 
 @Injectable()
 export class CatsService {
-  constructor(
-    @InjectRepository(CatsEntity)
-    private readonly catsEntityRepository: Repository<CatsEntity>,
-  ) {}
-
-  async getAllCats(): Promise<CatsEntity[]> {
-    return this.catsEntityRepository.find();
+  async getAllCats(): Promise<CatDto[]> {
+    return cats;
   }
 
-  async getOneCat(id: number): Promise<CatsEntity> {
-    const cat = this.catsEntityRepository.findOneBy({ id });
+  async getOneCat(id: number): Promise<CatDto> {
+    const cat = cats.find((cat) => cat.id === id);
     if (!cat) {
       throw new NotFoundException(`Cat with id ${id} is not found`);
     }
     return cat;
   }
 
-  async createCat(dto: CreateCatDto): Promise<CatsEntity> {
-    const cat = new CatsEntity();
-    cat.age = dto.age;
-    cat.breed = dto.breed;
-    cat.name = dto.name;
+  async createCat(dto: CreateCatDto): Promise<CatDto> {
+    const newCat = {
+      id: Date.now(),
+      ...dto,
+    };
+    cats.push(newCat);
 
-    const fields = await validate(cat);
-
-    if (fields.length) {
-      throw new ValidateException(fields);
-    }
-
-    const createdCat = await this.catsEntityRepository.save(cat);
-    return await this.getOneCat(createdCat.id);
+    return newCat;
   }
 
-  async updateCat(dto: UpdateCatDto, id: number): Promise<CatsEntity> {
-    const { affected }: UpdateResult = await this.catsEntityRepository.update(
-      { id },
-      dto,
-    );
+  async updateCat(dto: UpdateCatDto, id: number): Promise<CatDto> {
+    const cat = await this.getOneCat(id);
+    const updatedCat = { ...cat, ...dto };
+    const index = cats.findIndex((cat) => cat.id === id);
+    cats[index] = updatedCat;
 
-    if (affected === 0) {
-      throw new NotFoundException(`Cat with id ${id} is not found`);
-    }
-
-    return await this.getOneCat(id);
+    return updatedCat;
   }
 
   async deleteCat(id: number): Promise<void> {
-    await this.catsEntityRepository.delete({ id });
+    const index = cats.findIndex((cat) => cat.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Cat with id ${id} is not found`);
+    }
+    cats.splice(index, 1);
   }
 }
