@@ -29,8 +29,8 @@ export class CatsService {
   async createCat(dto: CreateCatDto): Promise<CatsEntity> {
     const cat = new CatsEntity();
     cat.age = dto.age;
-    cat.breed = dto.breed;
     cat.name = dto.name;
+    cat.breed = dto.breed;
 
     const fields = await validate(cat);
 
