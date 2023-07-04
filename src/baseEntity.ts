@@ -8,7 +8,7 @@ import {
 @Entity()
 export class BaseEntity {
   @PrimaryGeneratedColumn('increment')
-  id: number;
+  id: string;
 
   @CreateDateColumn({ update: false })
   createdAt: Date;

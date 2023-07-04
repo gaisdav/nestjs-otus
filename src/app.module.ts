@@ -6,6 +6,11 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { GraphQLModule } from '@nestjs/graphql';
+import { DirectiveLocation, GraphQLDirective } from 'graphql';
+import { upperDirectiveTransformer } from './common/directives/upper-case.directive';
+
 @Module({
   imports: [
     CatsModule,
@@ -16,10 +21,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       host: 'localhost',
       port: 5432,
       username: 'postgres',
-      password: '123',
+      password: '4823',
       database: 'cats_db',
       autoLoadEntities: true,
       migrationsTableName: '__migrations',
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      transformSchema: (schema) => upperDirectiveTransformer(schema, 'upper'),
+      installSubscriptionHandlers: true,
+      buildSchemaOptions: {
+        directives: [
+          new GraphQLDirective({
+            name: 'upper',
+            locations: [DirectiveLocation.FIELD_DEFINITION],
+          }),
+        ],
+      },
     }),
   ],
   controllers: [AppController],
