@@ -8,13 +8,13 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
-      whitelist: true,
+      whitelist: false,
       exceptionFactory: (fields) => {
         throw new ValidateException(fields);
       },
     }),
   );
-  await app.listen(9000, '0.0.0.0');
+  await app.listen(3000, '0.0.0.0');
 
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
